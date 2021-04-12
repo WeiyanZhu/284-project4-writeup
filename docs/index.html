@@ -1,0 +1,395 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+    div.padded {
+        padding-top: 0px;
+        padding-right: 100px;
+        padding-bottom: 0.25in;
+        padding-left: 100px;
+    }  
+</style>
+<title>CS 184 Mesh Editor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+    <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2021</h1>
+    <h1 align="middle">Project 4: Cloth Simulator</h1>
+    <h2 align="middle">Weiyan Zhu, CS184-weiyanzhu4</h2>
+    <h2 align="middle">My repo's github page stops getting updated after the github page system is changed. I created a public repo to host my writeup.</h2>
+    <h2 align="middle"><a href="">Link:</a>  </h2>
+    <br /><br />
+
+    <div class="padded">
+
+        <h2 align="middle">Overview</h2>
+        <p>
+            In this assignment, we learned to render objects in animations. We used physics and math knowledge to render the light and handle collisions
+            between objects correctly. We also learn shader, which are programs run on GPU that allow us render our scene faster than using CPU in assignment 3.
+        </p>
+
+        <h2 align="middle">Part 1: Masses and springs</h2>
+        <p>
+            In part 1, I created point masses and springs to form the wireframe of the cloth. Here are some images of scene/pinned2.json from different view angles.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part1/part1_1.PNG" width="480px" />
+                        <figcaption align="middle">wireframe 1</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part1/part1_2.PNG" width="480px" />
+                        <figcaption align="middle">wireframe 2</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part1/part1_3.PNG" width="480px" />
+                        <figcaption align="middle">wireframe 3</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p>
+            Here are some images of scene/pinned2.json (1) without any shearing constraints, (2) with only shearing constraints, and (3) with all constraints.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part1/part1_without_shearing.PNG" width="480px" />
+                        <figcaption align="middle">without any shearing constraints</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part1/part1_only_shearing.PNG" width="480px" />
+                        <figcaption align="middle">with only shearing constraints</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part1/part1_all.PNG" width="480px" />
+                        <figcaption align="middle">with all constraints</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 align="middle">Part 2: Simulation via numerical integration</h2>
+        <p>
+            When the ks is low, there are more wrinkles on the cloth but each one is smaller. With a high ks, there are fewer wrinkles and cloth looks more flat.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part2/pinned2_ks_100.PNG" width="480px" />
+                        <figcaption align="middle">ks 100</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part2/pinned2_default.PNG" width="480px" />
+                        <figcaption align="middle">ks 5000</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part2/pinned2_ks_100000.PNG" width="480px" />
+                        <figcaption align="middle">ks 100000</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            When the density is low, there are fewer wrinkles and cloth looks more flat. With a higher density, there are more wrinkles on the cloth and each one is smaller.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part2/pinned2_density_3.PNG" width="480px" />
+                        <figcaption align="middle">density 3</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part2/pinned2_default.PNG" width="480px" />
+                        <figcaption align="middle">density 15</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part2/pinned2_density_60.PNG" width="480px" />
+                        <figcaption align="middle">density 60</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            With a low damping, the cloth will move very fast and swing around for a while. With a high density the cloth will move slowly towards its final state.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part2/pinned2_damping_1.PNG" width="480px" />
+                    </td>
+                    <td align="middle">
+                        <img src="part2/pinned2_damping_2.PNG" width="480px" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>Here is scene/pinned4.json in its final resting state.</p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part2/pinned4_rest.PNG" width="480px" />
+                        <figcaption align="middle">pinned4.json</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 align="middle">Part 3: Handling collisions with other objects</h2>
+        <p>
+            Compared to ks = 5000, there are more wrinles in ks = 500 but each one is smaller. In ks = 50000 there are fewer wrinkles but each one is larger.
+            As ks increases, the number of wrinles decreases.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part3/sphere_ks500.PNG" width="480px" />
+                        <figcaption align="middle">ks = 500</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part3/sphere_ks5000.PNG" width="480px" />
+                        <figcaption align="middle">ks = 5000</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part3/sphere_ks50000.PNG" width="480px" />
+                        <figcaption align="middle">ks = 50000</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p>Here are screenshots of cloth lying on the plane.</p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part3/plane1.PNG" width="480px" />
+                        <figcaption align="middle">wireframe</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part3/plane2.PNG" width="480px" />
+                        <figcaption align="middle">textured</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 align="middle">Part 4: Handling self-collisions</h2>
+        <p>Here are screenshots of the cloth folding on itself.</p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part4/folding1.PNG" width="480px" />
+                        <figcaption align="middle">early, initial self-collision</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part4/folding2.PNG" width="480px" />
+                        <figcaption align="middle">in the middle</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part4/folding3.PNG" width="480px" />
+                        <figcaption align="middle">at a restful state</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            When the ks is small, there will be more wrinkles on the cloth when it is falling on itself, and each wrinkle is small. When the ks is larger,
+            there will be fewer wrinkles but each one will be bigger.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part4/folding_ks500.PNG" width="480px" />
+                        <figcaption align="middle">ks = 500</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part4/folding1.PNG" width="480px" />
+                        <figcaption align="middle">ks = 5000</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part4/folding_ks50000.PNG" width="480px" />
+                        <figcaption align="middle">ks = 50000</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p>
+            Opposite to ks. When the density is small, there will be fewer wrinkles on the cloth when it is falling on itself and each wrinle is large.
+            When the density is larger, there will be more wrinkles but each one will be smaller.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part4/folding_density1.PNG" width="480px" />
+                        <figcaption align="middle">density = 1</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part4/folding1.PNG" width="480px" />
+                        <figcaption align="middle">density = 15</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part4/folding_density60.PNG" width="480px" />
+                        <figcaption align="middle">density = 60</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 align="middle">Part 5: Shaders</h2>
+        <p>
+            Shaders are rendering programs that runs on GPU instead of CPU. The vertex shader run for each vertex. It reads and writes geometric properties
+            like position/normal, which will be interpolated with barycentric interpolation and send to fragment shader. The frament shader runs for each
+            fragment. It takes input from vertex shader and decides what color the fragment should be.
+        </p>
+        <h3 align="middle">Blinn-Phong Shading</h3>
+        <p>
+            The Blinn-Phong shading model adds ambient, diffuse and specular lighting together to create the shading. Here are screenshots of each component
+            and the final result.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part5/blinnphong_ambient.PNG" width="360px" />
+                        <figcaption align="middle">the ambient component</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/blinnphong_diffuse.PNG" width="360px" />
+                        <figcaption align="middle">the diffuse component</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/blinnphong_specular.PNG" width="360px" />
+                        <figcaption align="middle">the specular component</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/blinnphong_all.PNG" width="360px" />
+                        <figcaption align="middle">entire model</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <h3 align="middle">Texture Mapping</h3>
+        <p>
+            Screenshots of texture mapping shader using custom texture.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part5/texture1.PNG" width="360px" />
+                    </td>
+                    <td align="middle">
+                        <img src="part5/texture2.PNG" width="360px" />
+                    </td>
+                    <td align="middle">
+                        <img src="part5/texture3.PNG" width="360px" />
+                    </td>
+                    <td align="middle">
+                        <img src="part5/texture4.PNG" width="360px" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <h3 align="middle">Displacement and Bump Mapping</h3>
+        <p>
+            The bump shader changes the normal of the sphere based on the height texture. Even though from the lighting we see the surface of the sphere is not
+            smooth, the outline of the sphere still seems smooth, since the vertices positions of the sphere is not changed. The displace shader changes not only the normal,
+            but also position of the vertices. We can see the shape of the sphere looks different, which looks more natural (with a high coarseness).
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part5/bump_cloth_16.PNG" width="360px" />
+                        <figcaption align="middle">bump on cloth, o=a=16</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/bump_sphere_16.PNG" width="360px" />
+                        <figcaption align="middle">bump on sphere, o=a=16</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/displacement_cloth_16.PNG" width="360px" />
+                        <figcaption align="middle">displacement on cloth, o=a=16</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/displacement_sphere_16.PNG" width="360px" />
+                        <figcaption align="middle">displacement on sphere, o=a=16</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            When the sphere mesh's coarseness is increased, the bump shader does not seem to behave differently. However, the sphere rendered with displacement
+            shader looks better. Its shape becomes smoother while taking the height into account.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part5/bump_cloth_128.PNG" width="360px" />
+                        <figcaption align="middle">bump on cloth, o=a=128</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/bump_sphere_128.PNG" width="360px" />
+                        <figcaption align="middle">bump on sphere, o=a=128</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/displacement_cloth_128.PNG" width="360px" />
+                        <figcaption align="middle">displacement on cloth, o=a=128</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/displacement_sphere_128.PNG" width="360px" />
+                        <figcaption align="middle">displacement on sphere, o=a=128</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <h3 align="middle">Environment-mapped Reflections</h3>
+        <p>
+            Screenshot of mirror shader on the cloth and on the sphere.
+        </p>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                        <img src="part5/mirror_cloth.PNG" width="480px" />
+                        <figcaption align="middle">on cloth</figcaption>
+                    </td>
+                    <td align="middle">
+                        <img src="part5/mirror_sphere.PNG" width="480px" />
+                        <figcaption align="middle">on sphere</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
